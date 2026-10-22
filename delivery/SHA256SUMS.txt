@@ -1,0 +1,2 @@
+037ae30bd2f994af224f34d854c57f3c913d12bada0fb0ea2eea9c58c9678f34  DevicePulse-1.0.0-debug.apk
+bd699067c42b40bc707ffcfa1ea74c863b69b51ecbeab4cc7ce336e93ace925e  DevicePulse-1.0.0-source.zip

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "classification": "privileged-import",
+  "collector": "Example only — replace with your authorized collector and provenance",
+  "device": "Example only — replace with device description; no unique identifier required",
+  "startEpochMs": 1792674000000,
+  "endEpochMs": 1792677600000,
+  "metrics": [
+    {"uid": 10001, "package": "example.package", "batteryMah": 2.5, "cpuMs": 1200, "wakeLockMs": null}
+  ]
+}

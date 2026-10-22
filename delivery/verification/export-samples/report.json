@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "app": "DevicePulse 1.0.0",
+  "exportedAt": 1792689657452,
+  "timezone": "Etc\/UTC",
+  "session": {
+    "id": 1,
+    "start": 1792689657335,
+    "end": 1792689657444,
+    "planned": 1792711257335,
+    "interval": 300000,
+    "state": "stopped",
+    "bootElapsed": 1075781
+  },
+  "samples": [
+    {
+      "id": 1,
+      "session": 1,
+      "ts": 1792689657408,
+      "elapsed": 1075855,
+      "data": "{\"batteryPct\":100,\"tempC\":25,\"voltageMv\":5000,\"currentUa\":900000,\"health\":\"Good\",\"plugged\":true,\"chargingSource\":\"AC\",\"chargingState\":\"Charging\",\"screenOn\":true,\"powerSave\":false,\"doze\":false,\"thermalStatus\":0,\"memoryTotalBytes\":2077503488,\"memoryAvailableBytes\":1280372736,\"storageTotalBytes\":6240665600,\"storageAvailableBytes\":6054375424,\"ownCpuPctOneCore\":39.28696260048934,\"cpuFrequencyKhz\":\"1\",\"deviceCpuUsage\":null,\"cpuTemperatureC\":null,\"gpuTemperatureC\":null,\"brightnessSetting\":102,\"refreshHz\":60.000004,\"components\":{\"Connectivity\":{\"state\":\"measured\",\"value\":\"Wi-Fi\",\"source\":\"Android public API\"},\"Wi-Fi\":{\"state\":\"measured\",\"value\":\"Enabled · Connected · RSSI -30 dBm · frequency 2447 MHz · link 26 Mbps\",\"source\":\"Android public API\"},\"Network name\":{\"state\":\"permission-required \\\/ restricted\",\"value\":\"Location permission\\\/service and OS policy govern SSID\",\"source\":\"Android public API\"},\"Bluetooth\":{\"state\":\"measured\",\"value\":\"Enabled · paired: none · connected profiles: headset=disconnected, audio=disconnected (other profiles unavailable)\",\"source\":\"Android public API\"},\"Location service\":{\"state\":\"measured\",\"value\":\"true\",\"source\":\"Android public API\"},\"NFC\":{\"state\":\"unsupported\",\"value\":null,\"source\":\"Android public API\"},\"Audio\":{\"state\":\"measured\",\"value\":\"Media volume 5 \\\/ 15 · ringer mode 2 · music active false\",\"source\":\"Android public API\"},\"Camera\":{\"state\":\"available hardware\",\"value\":\"No camera opened; current exclusive availability not observed\",\"source\":\"Android public API\"},\"Microphone\":{\"state\":\"available hardware\",\"value\":\"No recording; other apps' microphone use unavailable\",\"source\":\"Android public API\"},\"Mobile\":{\"state\":\"measured\",\"value\":\"No active mobile transport; subscriber details restricted\",\"source\":\"Android public API\"}},\"source\":\"measured · Android public APIs; manufacturer-reported sensor values\"}"
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "session": 1,
+      "ts": 1792689657449,
+      "kind": "stopped",
+      "detail": "Session stopped. Sample timestamps determine coverage; missing intervals are unknown."
+    }
+  ],
+  "apps": [],
+  "imports": [],
+  "limitations": "Passive samples only; gaps unknown. Screen-off\/unplugged coverage uses observed boundaries only. OS network buckets may be delayed. Foreground time is not battery use. No per-app battery\/CPU\/wake-lock without labelled import. No simulation data.",
+  "units": "ts\/start\/end: Unix epoch ms; elapsed: ms since boot; batteryPct: percent; tempC: Celsius; voltageMv: mV; currentUa: microampere (device-dependent sign); rxBytes\/txBytes: bytes; foregroundMs: ms; batteryMah: mAh; cpuMs\/wakeLockMs: ms"
+}

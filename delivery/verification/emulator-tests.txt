@@ -1,0 +1,65 @@
+INSTRUMENTATION_STATUS: stream=PASS first launch has no demo records or automatic sensitive permission
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS null measurements never become zero; classification and recurring semantics
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS Doze gaps, reboot elapsed reset and clock jump are detected without guessing cause
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS 6h and 7h targets persist correctly; recovery marks interruption
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS foreground monitoring records actual battery/components, stop persists
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS expired target completes service and marks late stop instead of restart
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS denied usage/network access is explicit and never invents battery/CPU values
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS history coverage separates off/unplugged from session and excludes gaps
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS recurring findings use completed sessions only and ignore imported claims
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS privileged import validates interval, classification, duplicate UID and nonnegative values
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS CSV, JSON and multipage PDF export real records, units and nulls
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS Android content URI exports reopen as valid JSON/CSV/PDF
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS user confirmed reasons persist and deletion clears all local tables
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS native pages render small-phone dark/light layouts without simulated history
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS actual short-session samples render graphs with correct available values
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: passed=15
+INSTRUMENTATION_RESULT: stream=PASS first launch has no demo records or automatic sensitive permission
+PASS null measurements never become zero; classification and recurring semantics
+PASS Doze gaps, reboot elapsed reset and clock jump are detected without guessing cause
+PASS 6h and 7h targets persist correctly; recovery marks interruption
+PASS foreground monitoring records actual battery/components, stop persists
+PASS expired target completes service and marks late stop instead of restart
+PASS denied usage/network access is explicit and never invents battery/CPU values
+PASS history coverage separates off/unplugged from session and excludes gaps
+PASS recurring findings use completed sessions only and ignore imported claims
+PASS privileged import validates interval, classification, duplicate UID and nonnegative values
+PASS CSV, JSON and multipage PDF export real records, units and nulls
+PASS Android content URI exports reopen as valid JSON/CSV/PDF
+PASS user confirmed reasons persist and deletion clears all local tables
+PASS native pages render small-phone dark/light layouts without simulated history
+PASS actual short-session samples render graphs with correct available values
+
+15 tests passed. Synthetic history fixtures deleted; screenshots show actual empty/OS state. Full 6/7-hour endurance, OEM termination, radios and physical sensors not validated.
+
+INSTRUMENTATION_CODE: -1

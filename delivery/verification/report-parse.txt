@@ -1,0 +1,3 @@
+PASS JSON parsed: 1 actual API sample(s)
+PASS CSV parsed: 27 rows; units and unavailable fields preserved
+PASS PDF independently parsed with pdfinfo/pdftotext; required text and limitations present

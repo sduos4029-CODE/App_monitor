@@ -1,0 +1,2 @@
+INSTRUMENTATION_RESULT: stream=8 native app-window PixelCopy screenshots captured from real short-session API observations; capture history then deleted. No endurance claim.
+INSTRUMENTATION_CODE: -1
