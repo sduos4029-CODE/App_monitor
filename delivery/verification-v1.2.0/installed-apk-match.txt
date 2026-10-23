@@ -1,0 +1,2 @@
+PASS installed APK equals shipping APK byte-for-byte
+SHA256 1dddc045f4c0eee14633fb63286c9669aa85c6718c78fc4e651b90bea36ca503

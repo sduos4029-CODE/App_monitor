@@ -13,6 +13,6 @@ python3 - <<'PY'
 from pathlib import Path
 s=Path('app/build/verification/instrumentation.txt').read_text()
 import re
-assert 'INSTRUMENTATION_CODE: -1' in s and '23 tests passed' in s and 'FAIL' not in s,s
-assert len(re.findall(r'^INSTRUMENTATION_STATUS: stream=PASS ',s,re.M))==23,s
+assert 'INSTRUMENTATION_CODE: -1' in s and '27 tests passed' in s and 'FAIL' not in s,s
+assert len(re.findall(r'^INSTRUMENTATION_STATUS: stream=PASS ',s,re.M))==27,s
 PY

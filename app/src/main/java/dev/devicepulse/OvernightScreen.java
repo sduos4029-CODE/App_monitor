@@ -168,6 +168,7 @@ final class OvernightScreen {
             + " "
             + android.os.Build.MODEL
             + ". Emulator values are not physical-device validation.");
+    current.addView(a.button("Live device dashboard", () -> a.navigate("Components")));
     LinearLayout help =
         card(
             "The morning report",

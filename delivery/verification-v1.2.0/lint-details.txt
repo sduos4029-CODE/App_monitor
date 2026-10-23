@@ -1,0 +1,100 @@
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/Graph.java:133: Warning: Avoid object allocations during draw/layout operations (preallocate and reuse instead) [DrawAllocation]
+            ? new java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/Graph.java:134: Warning: Avoid object allocations during draw/layout operations (preallocate and reuse instead) [DrawAllocation]
+                .format(new Date(begin))
+                        ~~~~~~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/Graph.java:138: Warning: Avoid object allocations during draw/layout operations (preallocate and reuse instead) [DrawAllocation]
+            ? new java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/Graph.java:139: Warning: Avoid object allocations during draw/layout operations (preallocate and reuse instead) [DrawAllocation]
+                .format(new Date(finish))
+                        ~~~~~~~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/PulseIcon.java:29: Warning: Avoid object allocations during draw/layout operations (preallocate and reuse instead) [DrawAllocation]
+    Path path = new Path();
+                ~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/PulseIcon.java:48: Warning: Avoid object allocations during draw/layout operations (preallocate and reuse instead) [DrawAllocation]
+        Path cut = new Path();
+                   ~~~~~~~~~~
+
+   Explanation for issues of type "DrawAllocation":
+   You should avoid allocating objects during a drawing or layout operation.
+   These are called frequently, so a smooth UI can be interrupted by garbage
+   collection pauses caused by the object allocations.
+
+   The way this is generally handled is to allocate the needed objects up
+   front and to reuse them for each drawing operation.
+
+   Some methods allocate memory on your behalf (such as Bitmap.create), and
+   these should be handled in the same way.
+
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/PulseIcon.java:8: Warning: Custom view PulseIcon is missing constructor used by tools: (Context) or (Context,AttributeSet) or (Context,AttributeSet,int) [ViewConstructor]
+final class PulseIcon extends View {
+            ~~~~~~~~~
+
+   Explanation for issues of type "ViewConstructor":
+   Some layout tools (such as the Android layout editor) need to find a
+   constructor with one of the following signatures:
+   * View(Context context)
+   * View(Context context, AttributeSet attrs)
+   * View(Context context, AttributeSet attrs, int defStyle)
+
+   If your custom view needs to perform initialization which does not apply
+   when used in a layout editor, you can surround the given code with a check
+   to see if View#isInEditMode() is false, since that method will return false
+   at runtime but true within a user interface editor.
+
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/ComponentDashboard.java:143: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+    stamp.setText("● LIVE CHECK  ·  " + MainActivity.time(latest.optLong("capturedAt")));
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/ComponentDashboard.java:143: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+    stamp.setText("● LIVE CHECK  ·  " + MainActivity.time(latest.optLong("capturedAt")));
+                  ~~~~~~~~~~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/ComponentDashboard.java:172: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+        (latest.isNull("thermalStatus")
+        ^
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/ComponentDashboard.java:178: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+        Runtime.getRuntime().availableProcessors()
+        ^
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/ComponentDashboard.java:179: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+            + " logical processors  ·  "
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/ComponentDashboard.java:187: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+        "Display "
+        ^
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/ComponentDashboard.java:187: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        "Display "
+        ~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/ComponentDashboard.java:206: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+      entry.getValue().setText(entry.getKey() + "   ›\n" + summary);
+                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/MainActivity.java:545: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                                  base
+                                  ^
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/MainActivity.java:550: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                                      + " ns since boot · accuracy "
+                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/MainActivity.java:558: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                        if (!ok) t.setText(base + "\nLive: unsupported/restricted");
+                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/MainActivity.java:560: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                        t.setText(base + "\nLive: permission-required/restricted");
+                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/App_monitor/app/src/main/java/dev/devicepulse/MainActivity.java:732: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+          input.setText("" + prefs.getFloat(key, def));
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "SetTextI18n":
+   When calling TextView#setText
+   * Never call Number#toString() to format numbers; it will not handle
+   fraction separators and locale-specific digits properly. Consider using
+   String#format with proper format specifications (%d or %f) instead.
+   * Do not pass a string literal (e.g. "Hello") to display text. Hardcoded
+   text can not be properly translated to other languages. Consider using
+   Android resource strings instead.
+   * Do not build messages by concatenating text chunks. Such messages can not
+   be properly translated.
+
+   https://developer.android.com/guide/topics/resources/localization.html
+
+0 errors, 20 warnings

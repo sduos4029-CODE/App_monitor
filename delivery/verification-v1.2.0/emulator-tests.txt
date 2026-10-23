@@ -1,0 +1,117 @@
+Performing Streamed Install
+Success
+Performing Streamed Install
+Success
+INSTRUMENTATION_STATUS: stream=PASS first launch has no demo records or automatic sensitive permission
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS null measurements never become zero; classification and recurring semantics
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS Doze gaps, reboot elapsed reset and clock jump are detected without guessing cause
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS 6h and 7h targets persist correctly; recovery marks interruption
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS foreground monitoring records actual battery/components, stop persists
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS expired target completes service and marks late stop instead of restart
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS denied usage/network access is explicit and never invents battery/CPU values
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS history coverage separates off/unplugged from session and excludes gaps
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS recurring findings use completed sessions only and ignore imported claims
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS privileged import validates interval, classification, duplicate UID and nonnegative values
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS CSV, JSON and multipage PDF export real records, units and nulls
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS Android content URI exports reopen as valid JSON/CSV/PDF
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS user confirmed reasons persist and deletion clears all local tables
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS native pages render small-phone dark/light layouts without simulated history
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS actual short-session samples render graphs with correct available values
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS overnight: one reading has no fabricated zero battery loss
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS overnight: unknown states excluded and coverage partitions sum to session
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS overnight: missing battery in unplugged interval remains unavailable
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS overnight: clock discontinuity suppresses rates and breaks chart lines
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS overnight: native five-tab navigation and empty report have no demo readings
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS overnight: purpose is unknown unless user confirms it; rankings are not energy
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS overnight: seven-hour choice survives activity state saving
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS overnight: public Android Battery usage intent opens the system screen
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS component dashboard automatically refreshes actual readings without replacing scroll views
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS component unavailable and permission states never become zero or enabled
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS component refresh preserves scroll position and does not write session history
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS paused lifecycle suppresses live refresh and navigation discards component view
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: passed=27
+INSTRUMENTATION_RESULT: stream=PASS first launch has no demo records or automatic sensitive permission
+PASS null measurements never become zero; classification and recurring semantics
+PASS Doze gaps, reboot elapsed reset and clock jump are detected without guessing cause
+PASS 6h and 7h targets persist correctly; recovery marks interruption
+PASS foreground monitoring records actual battery/components, stop persists
+PASS expired target completes service and marks late stop instead of restart
+PASS denied usage/network access is explicit and never invents battery/CPU values
+PASS history coverage separates off/unplugged from session and excludes gaps
+PASS recurring findings use completed sessions only and ignore imported claims
+PASS privileged import validates interval, classification, duplicate UID and nonnegative values
+PASS CSV, JSON and multipage PDF export real records, units and nulls
+PASS Android content URI exports reopen as valid JSON/CSV/PDF
+PASS user confirmed reasons persist and deletion clears all local tables
+PASS native pages render small-phone dark/light layouts without simulated history
+PASS actual short-session samples render graphs with correct available values
+PASS overnight: one reading has no fabricated zero battery loss
+PASS overnight: unknown states excluded and coverage partitions sum to session
+PASS overnight: missing battery in unplugged interval remains unavailable
+PASS overnight: clock discontinuity suppresses rates and breaks chart lines
+PASS overnight: native five-tab navigation and empty report have no demo readings
+PASS overnight: purpose is unknown unless user confirms it; rankings are not energy
+PASS overnight: seven-hour choice survives activity state saving
+PASS overnight: public Android Battery usage intent opens the system screen
+PASS component dashboard automatically refreshes actual readings without replacing scroll views
+PASS component unavailable and permission states never become zero or enabled
+PASS component refresh preserves scroll position and does not write session history
+PASS paused lifecycle suppresses live refresh and navigation discards component view
+
+27 tests passed. Synthetic history fixtures deleted; screenshots show actual empty/OS state. Full 6/7-hour endurance, OEM termination, radios and physical sensors not validated.
+
+INSTRUMENTATION_CODE: -1

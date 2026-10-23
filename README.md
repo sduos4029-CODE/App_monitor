@@ -1,8 +1,8 @@
-# DevicePulse 1.1.0 — overnight battery report
+# DevicePulse 1.2.0 — live device dashboard
 
-[Download debug APK](https://raw.githubusercontent.com/sduos4029-CODE/App_monitor/devicepulse/overnight-ui/delivery/DevicePulse-1.1.0-debug.apk) · [Complete source ZIP](https://raw.githubusercontent.com/sduos4029-CODE/App_monitor/devicepulse/overnight-ui/delivery/DevicePulse-1.1.0-source.zip) · [Executed verification](docs/VALIDATION-v1.1.0.md)
+[Download debug APK](https://raw.githubusercontent.com/sduos4029-CODE/App_monitor/devicepulse/live-components/delivery/DevicePulse-1.2.0-debug.apk) · [Complete source ZIP](https://raw.githubusercontent.com/sduos4029-CODE/App_monitor/devicepulse/live-components/delivery/DevicePulse-1.2.0-source.zip) · [Executed verification](docs/VALIDATION-v1.2.0.md)
 
-A native Android app focused on **what happened while your phone was unused overnight**. Package `dev.devicepulse`, Android 8/API 26+, versionCode 2. Updates the matching-signed 1.0.0 app without deleting its local history or preferences. The original repository's `Nightwatch.apk` (`dev.nightwatch`) remains unchanged and separate.
+A native Android app focused on **what happened while your phone was unused overnight**. Package `dev.devicepulse`, Android 8/API 26+, versionCode 3. Updates the matching-signed 1.1.0 app without deleting its local history or preferences. The original repository's `Nightwatch.apk` (`dev.nightwatch`) remains unchanged and separate.
 
 ## Use it tonight
 
@@ -24,15 +24,21 @@ History retains timelines, 7/30-day comparisons, CSV/JSON/PDF document-picker ex
 
 No Internet permission, ads, analytics, tracking libraries, root, accessibility service or broad storage permission. History is local with deletion controls; exported documents remain under the user's control. Battery temperature alerts occur only when a sample is received; they are not continuous thermal protection.
 
+## Live device dashboard
+
+Open **Home → Live device dashboard**, or **Settings → Device components**. Battery, battery temperature, used RAM/storage, processor/display and grouped connection/hardware states are checked every **2 seconds while this screen is in the foreground**. The timestamp is the API check time, not a promise that the underlying hardware publishes a new measurement that often. Pausing the app cancels refresh; overnight collection still uses its configured interval. No wake lock or continuously activated sensor is added.
+
+Existing views update in place, preserving scroll position. Battery and connection rows open measurement/source details; Bluetooth and Wi-Fi access remain optional feature-specific permissions. Sensor inventory and opt-in 15-second readings are retained. Memory means device RAM in use (including OS/cache), not individual-app consumption. Storage is the app data volume. CPU usage means this app’s own process; device-wide CPU and portable CPU/GPU temperatures remain unavailable. Emulator values describe the emulator, not a physical phone.
+
 ## Actual native screenshots
 
-These are PixelCopy captures from a running Android 11 emulator with a short stopped session using actual API observations. They are **not** completed overnight measurements or physical-device validation. System overlays/chrome are excluded. Scroll within the app to see full reports.
+Captured from the running Android 11 emulator using native PixelCopy, not generated mockups. These are foreground API checks, not physical hardware or a completed overnight measurement.
 
-![Overnight report](delivery/screenshots-v1.1.0/overnight.png)
+![Live device dashboard](delivery/screenshots-v1.2.0/components.png)
 
-![Battery timeline and review](delivery/screenshots-v1.1.0/overnight-chart.png)
+![Connections](delivery/screenshots-v1.2.0/components-connections.png)
 
-![App activity and access](delivery/screenshots-v1.1.0/activity.png)
+![Other components](delivery/screenshots-v1.2.0/components-other.png)
 
 ## Reproducible build and tests
 
@@ -51,6 +57,6 @@ adb shell am instrument -w -r -e capturesOnly true dev.devicepulse.test/dev.devi
 
 **Debug signed**, not release/Play signed. The signing key stays outside this repository and ZIP. A new developer's independently generated debug key cannot update this published APK; retain the original private key securely for future matching updates. Never silently uninstall to bypass a signature mismatch. Keep Play Protect enabled; no installation approval is promised.
 
-Build/lint, **16 host assertions, 23 Android instrumentation tests**, a same-signature 1.0→1.1 update-retention test and report roundtrips were executed. No full 6h/7h endurance run or physical battery-overhead benchmark was performed. Physical Doze/OEM behavior, radios/sensors, Android 13+ prompts and Android 14+ foreground-service behavior still require phone testing. Full picker/share/import UI interactions are not yet automated end to end. Details and actual logs: [verification](docs/VALIDATION-v1.1.0.md).
+Build/lint, **16 host assertions, 27 Android instrumentation tests**, a same-signature 1.1→1.2 update-retention test and report roundtrips were executed. No full 6h/7h endurance run or physical battery-overhead benchmark was performed. Physical Doze/OEM behavior, radios/sensors, Android 13+ prompts and Android 14+ foreground-service behavior still require phone testing. Full picker/share/import UI interactions are not yet automated end to end. Details and actual logs: [verification](docs/VALIDATION-v1.2.0.md).
 
 [Measurement definitions](docs/MEASUREMENTS.md) · [Collector import format](docs/IMPORTS.md) · [Illustrative import JSON](examples/privileged-import.json) · [Original 1.0 verification](docs/VALIDATION.md)

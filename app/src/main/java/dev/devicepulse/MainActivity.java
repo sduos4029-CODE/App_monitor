@@ -32,12 +32,15 @@ public class MainActivity extends Activity {
   Handler h = new Handler();
   int pendingHours = 6;
   boolean busy;
+  ComponentDashboard componentDashboard;
+  boolean resumed;
   final Runnable refresh =
       new Runnable() {
         public void run() {
-          if (page.equals("Dashboard") || page.equals("Overnight") || page.equals("Components"))
-            render();
-          h.postDelayed(this, 30000);
+          if (!resumed || isFinishing() || isDestroyed()) return;
+          if (page.equals("Components") && componentDashboard != null) componentDashboard.update();
+          else if (page.equals("Dashboard") || page.equals("Overnight")) render();
+          h.postDelayed(this, page.equals("Components") ? 2000 : 30000);
         }
       };
 
@@ -69,7 +72,9 @@ public class MainActivity extends Activity {
 
   protected void onResume() {
     super.onResume();
-    h.postDelayed(refresh, 30000);
+    resumed = true;
+    h.removeCallbacks(refresh);
+    h.postDelayed(refresh, page.equals("Components") ? 2000 : 30000);
     if (db != null) {
       org.json.JSONObject active = db.active();
       if (active != null
@@ -81,6 +86,7 @@ public class MainActivity extends Activity {
   }
 
   protected void onPause() {
+    resumed = false;
     h.removeCallbacks(refresh);
     stopSensors();
     super.onPause();
@@ -172,10 +178,13 @@ public class MainActivity extends Activity {
     stopSensors();
     page = p;
     render();
+    h.removeCallbacks(refresh);
+    if (resumed) h.postDelayed(refresh, page.equals("Components") ? 2000 : 30000);
   }
 
   void render() {
     if (isFinishing() || isDestroyed()) return;
+    componentDashboard = null;
     dark = prefs.getBoolean("dark", true);
     ink = dark ? 0xfff0f5ff : 0xff152338;
     muted = dark ? 0xffb6c5d9 : 0xff42546c;
@@ -405,61 +414,8 @@ public class MainActivity extends Activity {
   }
 
   void components() {
-    title("Device components");
-    JSONObject o = Probe.take(this);
-    box(
-        "Battery · measured",
-        Logic.value(Analysis.n(o, "batteryPct"), "%")
-            + " · "
-            + o.optString("chargingState")
-            + " · "
-            + o.optString("chargingSource")
-            + "\nVoltage "
-            + Logic.value(Analysis.n(o, "voltageMv"), "mV")
-            + "\nCurrent "
-            + Logic.value(Analysis.n(o, "currentUa"), "µA")
-            + " (sign/accuracy device-dependent)\nHealth "
-            + o.optString("health"));
-    box(
-        "Temperature & thermal state",
-        Logic.value(Analysis.n(o, "tempC"), "°C battery")
-            + "\nThermal status "
-            + (o.isNull("thermalStatus")
-                ? "Unsupported before Android 10"
-                : thermal(o.optInt("thermalStatus")))
-            + "\n"
-            + "CPU/GPU temperature: restricted/unavailable\n"
-            + "Session min/max and threshold alerts are in History / Settings.");
-    box(
-        "CPU",
-        Probe.cpu()
-            + "\nAccessible core-0 frequency: "
-            + (o.isNull("cpuFrequencyKhz")
-                ? "restricted/unavailable"
-                : o.optString("cpuFrequencyKhz") + " kHz")
-            + "\nThis app CPU: "
-            + Logic.value(Analysis.n(o, "ownCpuPctOneCore"), "% of one core since prior probe"));
-    box("Memory", capacity(o, "memoryTotalBytes", "memoryAvailableBytes"));
-    box("Storage · app data volume", capacity(o, "storageTotalBytes", "storageAvailableBytes"));
-    box(
-        "Display",
-        "Interactive (not a guarantee of panel power): "
-            + o.optBoolean("screenOn")
-            + "\nBrightness setting "
-            + (o.isNull("brightnessSetting")
-                ? "Unavailable"
-                : o.optInt("brightnessSetting") + " / 255 (not nits)")
-            + "\nRefresh "
-            + Logic.value(Analysis.n(o, "refreshHz"), "Hz"));
-    JSONObject components = o.optJSONObject("components");
-    Iterator<String> names = components.keys();
-    while (names.hasNext()) {
-      String name = names.next();
-      JSONObject detail = components.optJSONObject(name);
-      box(
-          name + " · " + detail.optString("state"),
-          detail.isNull("value") ? "Unavailable" : detail.optString("value"));
-    }
+    componentDashboard = new ComponentDashboard(this);
+    componentDashboard.build();
     action(
         "Bluetooth details permission",
         () -> {
@@ -500,7 +456,7 @@ public class MainActivity extends Activity {
                 .setNegativeButton("Cancel", null)
                 .show());
     action("Sensor inventory & optional live reading", this::sensorInventory);
-    action("Refresh components", () -> render());
+    action("Refresh now", () -> componentDashboard.update());
     note(
         "Hardware availability does not mean a component is currently in use. No continuous camera,"
             + " microphone, radio or sensor probing occurs overnight.");

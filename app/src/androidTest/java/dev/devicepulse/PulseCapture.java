@@ -76,6 +76,24 @@ public class PulseCapture {
     throw new AssertionError("Native graph layout did not become scrollable");
   }
 
+  void scrollToPanel(String heading) {
+    ui(
+        () -> {
+          for (int i = 0; i < app.body.getChildCount(); i++) {
+            View v = app.body.getChildAt(i);
+            if (v instanceof LinearLayout && ((LinearLayout) v).getChildCount() > 0) {
+              View title = ((LinearLayout) v).getChildAt(0);
+              if (title instanceof TextView
+                  && heading.contentEquals(((TextView) title).getText())) {
+                ((ScrollView) app.body.getParent()).scrollTo(0, v.getTop());
+                return;
+              }
+            }
+          }
+          throw new AssertionError("No panel " + heading);
+        });
+  }
+
   public void runCapture() {
     Bundle result = new Bundle();
     try {
@@ -103,6 +121,12 @@ public class PulseCapture {
           }) {
         ui(() -> app.navigate(page));
         shot(page.toLowerCase(java.util.Locale.ROOT));
+        if (page.equals("Components")) {
+          scrollToPanel("Connections");
+          shot("components-connections");
+          scrollToPanel("Other components");
+          shot("components-other");
+        }
       }
       ui(() -> app.navigate("Overnight"));
       scrollToGraph();
@@ -119,7 +143,7 @@ public class PulseCapture {
           });
       result.putString(
           "stream",
-          "10 native app-window PixelCopy screenshots captured from real short-session API"
+          "12 native app-window PixelCopy screenshots captured from real short-session API"
               + " observations; capture history then deleted. No endurance claim.");
       owner.finish(Activity.RESULT_OK, result);
     } catch (Throwable t) {

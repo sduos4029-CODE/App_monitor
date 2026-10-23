@@ -5,7 +5,7 @@ import android.content.*;
 import android.os.*;
 import org.json.*;
 
-/** Only on a disposable emulator: tests a same-signature 1.0 → 1.1 update without uninstall. */
+/** Only on a disposable emulator: tests a same-signature 1.1 → 1.2 update without uninstall. */
 final class UpgradeState {
   static void run(Instrumentation t, String mode) {
     Bundle result = new Bundle();
@@ -34,11 +34,11 @@ final class UpgradeState {
             || db.samples(id).length() != 1
             || !"Backup".equals(db.apps(id).optJSONObject(0).optString("reason")))
           throw new AssertionError("Existing data lost across update");
-        if (c.getPackageManager().getPackageInfo(c.getPackageName(), 0).versionCode < 2)
+        if (c.getPackageManager().getPackageInfo(c.getPackageName(), 0).versionCode < 3)
           throw new AssertionError("Updated version not installed");
         result.putString(
             "stream",
-            "PASS same-signature 1.0.0 → 1.1.0 update retained schema-1 history, API sample, reason"
+            "PASS same-signature 1.1.0 → 1.2.0 update retained schema-1 history, API sample, reason"
                 + " and preferences. No uninstall performed.");
         db.erase();
         p.edit().remove("upgradeId").remove("upgradeMarker").commit();

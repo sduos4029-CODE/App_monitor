@@ -36,6 +36,7 @@ final class Probe {
 
   static JSONObject take(Context c) {
     JSONObject o = new JSONObject();
+    Store.put(o, "capturedAt", System.currentTimeMillis());
     Intent b = c.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
     BatteryManager bm = c.getSystemService(BatteryManager.class);
     Double level = number(b, BatteryManager.EXTRA_LEVEL, 1),

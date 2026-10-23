@@ -458,6 +458,7 @@ public class PulseTests extends Instrumentation {
             shot("graphs-real-short-session");
           });
       OvernightChecks.run(this);
+      ComponentChecks.run(this);
       for (String page :
           new String[] {
             "Dashboard", "Overnight", "Components", "History", "Activity", "Findings", "Settings"

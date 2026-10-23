@@ -1,0 +1,10 @@
+Performing Streamed Install
+Success
+Performing Streamed Install
+Success
+INSTRUMENTATION_RESULT: stream=Seeded old installation with actual API sample, reason fixture and preference marker.
+INSTRUMENTATION_CODE: -1
+Performing Streamed Install
+Success
+INSTRUMENTATION_RESULT: stream=PASS same-signature 1.1.0 → 1.2.0 update retained schema-1 history, API sample, reason and preferences. No uninstall performed.
+INSTRUMENTATION_CODE: -1

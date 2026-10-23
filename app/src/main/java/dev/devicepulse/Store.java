@@ -227,7 +227,7 @@ final class Store extends SQLiteOpenHelper {
   JSONObject report(long id) {
     JSONObject o = new JSONObject();
     put(o, "schemaVersion", 1);
-    put(o, "app", "DevicePulse 1.1.0");
+    put(o, "app", "DevicePulse 1.2.0");
     put(o, "exportedAt", System.currentTimeMillis());
     put(o, "timezone", TimeZone.getDefault().getID());
     put(o, "session", session(id));
