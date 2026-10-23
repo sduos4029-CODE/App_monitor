@@ -24,6 +24,42 @@ final class Reports {
             "",
             "unavailable intervals",
             "DevicePulse"));
+    java.util.Iterator<String> sessionKeys = session.keys();
+    while (sessionKeys.hasNext()) {
+      String k = sessionKeys.next();
+      String units =
+          java.util.Arrays.asList("start", "end", "planned").contains(k)
+              ? "Unix epoch ms"
+              : java.util.Arrays.asList("interval", "bootElapsed").contains(k) ? "ms" : "text/id";
+      b.append(
+          line(
+              "session",
+              id,
+              report.optLong("exportedAt"),
+              k,
+              session.isNull(k) ? "UNAVAILABLE" : session.optString(k),
+              units,
+              session.isNull(k) ? "unavailable" : "recorded",
+              "DevicePulse session record"));
+    }
+    JSONObject summary = report.optJSONObject("summary");
+    if (summary != null) {
+      java.util.Iterator<String> keys = summary.keys();
+      while (keys.hasNext()) {
+        String k = keys.next();
+        b.append(
+            line(
+                "summary",
+                id,
+                report.optLong("exportedAt"),
+                k,
+                summary.isNull(k) ? "UNAVAILABLE" : summary.optString(k),
+                unit(k),
+                summary.isNull(k) ? "unavailable" : "derived estimate / count",
+                "Derived from timestamped observations; clockUncertain=true invalidates timing"
+                    + " estimates"));
+      }
+    }
     JSONArray samples = report.optJSONArray("samples");
     for (int i = 0; i < samples.length(); i++) {
       JSONObject r = samples.optJSONObject(i), d = Store.parse(r.optString("data"));
@@ -63,9 +99,20 @@ final class Reports {
 
   static String unit(String k) {
     if (k.endsWith("Ms")) return "ms";
+    if (k.endsWith("Ts")) return "Unix epoch ms";
+    if (k.endsWith("Count")) return "count";
+    if (java.util.Arrays.asList("clockUncertain", "screenOn", "plugged", "powerSave", "doze")
+        .contains(k)) return "boolean";
+    if (k.equals("thermalStatus")) return "Android severity code 0–6";
+    if (k.equals("brightnessSetting")) return "0–255 setting, not nits";
     if (k.endsWith("Bytes")) return "bytes";
-    if (k.equals("tempC")) return "°C";
-    if (k.equals("batteryPct")) return "%";
+    if (k.endsWith("C")) return "°C";
+    if (k.endsWith("Pct")) return "%";
+    if (k.equals("netChangePctPoints")) return "percentage points";
+    if (k.contains("PctPerHour")) return "percentage points/hour";
+    if (k.equals("cpuFrequencyKhz")) return "kHz";
+    if (k.equals("ownCpuPctOneCore")) return "% of one logical core";
+    if (k.equals("refreshHz")) return "Hz";
     if (k.equals("voltageMv")) return "mV";
     if (k.equals("currentUa")) return "µA";
     return "see field";
@@ -77,7 +124,7 @@ final class Reports {
       if (b.length() > 0) b.append(',');
       String s = String.valueOf(v);
       if ((s.startsWith("=") || s.startsWith("+") || s.startsWith("-") || s.startsWith("@"))
-          && !s.matches("[+-]?[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?")) s = "'" + s;
+          && !s.matches("[+-]?[0-9]+([.][0-9]+)?([eE][+-]?[0-9]+)?")) s = "'" + s;
       b.append('"').append(s.replace("\"", "\"\"")).append('"');
     }
     return b + "\r\n";
@@ -151,10 +198,7 @@ final class Reports {
     if (root.optString("collector").trim().isEmpty() || root.optString("device").trim().isEmpty())
       throw new IllegalArgumentException("Collector and device descriptions are required");
     long start = integer(root, "startEpochMs"), end = integer(root, "endEpochMs");
-    long sessionEnd =
-        session.isNull("end")
-            ? Math.min(System.currentTimeMillis(), session.optLong("planned"))
-            : session.optLong("end");
+    long sessionEnd = session.isNull("end") ? System.currentTimeMillis() : session.optLong("end");
     if (start < session.optLong("start") || end > sessionEnd || end <= start)
       throw new IllegalArgumentException("Import interval must be inside selected session");
     JSONArray entries = root.getJSONArray("metrics");

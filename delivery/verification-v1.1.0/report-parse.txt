@@ -1,0 +1,2 @@
+PASS: 23 native cases executed; actual installed APK matched; JSON/CSV/PDF independently parsed.
+PASS: coverage partition, unavailable values, units and sources preserved. CSV rows: 53

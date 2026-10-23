@@ -12,5 +12,7 @@ mkdir -p app/build/verification
 python3 - <<'PY'
 from pathlib import Path
 s=Path('app/build/verification/instrumentation.txt').read_text()
-assert 'INSTRUMENTATION_CODE: -1' in s and 'tests passed' in s and 'FAIL' not in s,s
+import re
+assert 'INSTRUMENTATION_CODE: -1' in s and '23 tests passed' in s and 'FAIL' not in s,s
+assert len(re.findall(r'^INSTRUMENTATION_STATUS: stream=PASS ',s,re.M))==23,s
 PY

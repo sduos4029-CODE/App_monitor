@@ -74,7 +74,7 @@ final class Store extends SQLiteOpenHelper {
     JSONObject s = session(id);
     if (s == null) return;
     ContentValues v = new ContentValues();
-    v.put("end", Math.min(System.currentTimeMillis(), s.optLong("planned")));
+    v.put("end", System.currentTimeMillis());
     v.put("state", state);
     getWritableDatabase().update("sessions", v, "id=?", new String[] {"" + id});
     event(
@@ -126,7 +126,7 @@ final class Store extends SQLiteOpenHelper {
   }
 
   JSONArray samples(long s) {
-    return query("SELECT * FROM samples WHERE session=? ORDER BY ts,id", new String[] {"" + s});
+    return query("SELECT * FROM samples WHERE session=? ORDER BY id", new String[] {"" + s});
   }
 
   JSONArray sessions() {
@@ -227,10 +227,11 @@ final class Store extends SQLiteOpenHelper {
   JSONObject report(long id) {
     JSONObject o = new JSONObject();
     put(o, "schemaVersion", 1);
-    put(o, "app", "DevicePulse 1.0.0");
+    put(o, "app", "DevicePulse 1.1.0");
     put(o, "exportedAt", System.currentTimeMillis());
     put(o, "timezone", TimeZone.getDefault().getID());
     put(o, "session", session(id));
+    put(o, "summary", Analysis.summary(this, id));
     put(o, "samples", samples(id));
     put(o, "events", events(id));
     put(o, "apps", apps(id));

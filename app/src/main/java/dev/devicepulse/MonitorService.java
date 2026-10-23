@@ -47,7 +47,10 @@ public class MonitorService extends Service {
       finish("stopped");
       return START_NOT_STICKY;
     }
-    if (running) return START_NOT_STICKY;
+    if (running) {
+      if (intent != null && "check".equals(intent.getAction())) tick();
+      return START_NOT_STICKY;
+    }
     JSONObject active = db.active();
     if (active == null) {
       stopSelf();
@@ -132,13 +135,13 @@ public class MonitorService extends Service {
     handler.removeCallbacks(sample);
     if (id > 0) {
       JSONObject session = db.session(id);
-      if (System.currentTimeMillis() <= session.optLong("planned")) db.sample(id, Probe.take(this));
-      else
+      if (System.currentTimeMillis() > session.optLong("planned"))
         db.event(
             id,
-            "late-stop",
-            "Collector resumed after target; no sample attributed to target window. Unknown"
-                + " trailing coverage.");
+            "target-overrun",
+            "Android resumed collection after the target. The final sample and recorded end use"
+                + " actual timestamps; no on-time stop is assumed.");
+      db.sample(id, Probe.take(this));
       db.finish(id, state);
       long sid = id;
       new Thread(

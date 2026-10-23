@@ -1,0 +1,1 @@
+PASS installed/tested APK equals delivery build byte-for-byte. SHA-256 c80b8493683ecb8f9a69877ba3de09e86fad16334f94f6d38fc8ea8c48fcceb6

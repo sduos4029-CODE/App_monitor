@@ -80,6 +80,10 @@ public class PulseTests extends Instrumentation {
   public void onStart() {
     Bundle out = new Bundle();
     try {
+      if (args != null && args.getString("upgrade") != null) {
+        UpgradeState.run(this, args.getString("upgrade"));
+        return;
+      }
       if (args != null && "true".equals(args.getString("capturesOnly"))) {
         new PulseCapture(this).runCapture();
         return;
@@ -173,6 +177,11 @@ public class PulseTests extends Instrumentation {
                 });
             SystemClock.sleep(2000);
             check(a.db.active() == null, "Expired session remains running");
+            org.json.JSONObject ended = a.db.sessions().optJSONObject(0);
+            check(
+                ended.optLong("end") > ended.optLong("planned"),
+                "Late stop falsely timestamped at target");
+            check(a.db.samples(ended.optLong("id")).length() > 0, "Actual final reading omitted");
             check(
                 a.db.sessions().optJSONObject(0).optString("state").equals("completed"),
                 "Not completed");
@@ -201,7 +210,11 @@ public class PulseTests extends Instrumentation {
           () -> {
             try (Store test = new Store(a)) {
               test.erase();
-              long id = test.start(6, 5), start = test.session(id).optLong("start");
+              long id = test.start(6, 5), start = System.currentTimeMillis() - 1800000L;
+              android.content.ContentValues bounds = new android.content.ContentValues();
+              bounds.put("start", start);
+              bounds.put("planned", start + 21600000L);
+              test.getWritableDatabase().update("sessions", bounds, "id=?", new String[] {"" + id});
               for (int i = 0; i < 4; i++) {
                 JSONObject d =
                     json(
@@ -230,7 +243,11 @@ public class PulseTests extends Instrumentation {
           () -> {
             a.db.erase();
             for (int k = 0; k < 3; k++) {
-              long id = a.db.start(6, 5), start = a.db.session(id).optLong("start");
+              long id = a.db.start(6, 5), start = System.currentTimeMillis() - 3600000L;
+              android.content.ContentValues bounds = new android.content.ContentValues();
+              bounds.put("start", start);
+              bounds.put("planned", start + 21600000L);
+              a.db.getWritableDatabase().update("sessions", bounds, "id=?", new String[] {"" + id});
               for (int i = 0; i < 2; i++) {
                 android.content.ContentValues sample = new android.content.ContentValues();
                 sample.put("session", id);
@@ -296,6 +313,10 @@ public class PulseTests extends Instrumentation {
             a.db.finish(id, "stopped");
             report[0] = a.db.report(id);
             String csv = Reports.csv(report[0]);
+            check(
+                csv.contains("unobservedMs") && csv.contains("derived estimate"),
+                "Coverage omitted from CSV");
+            check(Reports.line(-2.5).contains("\"-2.5\""), "Decimal temperature altered in CSV");
             check(
                 Reports.line(-150000).contains("\"-150000\""),
                 "Negative numeric current altered in CSV");
@@ -436,8 +457,11 @@ public class PulseTests extends Instrumentation {
                 });
             shot("graphs-real-short-session");
           });
+      OvernightChecks.run(this);
       for (String page :
-          new String[] {"Dashboard", "Components", "History", "Activity", "Findings", "Settings"}) {
+          new String[] {
+            "Dashboard", "Overnight", "Components", "History", "Activity", "Findings", "Settings"
+          }) {
         ui(() -> a.navigate(page));
         shot(page.toLowerCase(Locale.ROOT));
       }

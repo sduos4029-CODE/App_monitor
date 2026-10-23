@@ -10,8 +10,10 @@ final class Graph extends View {
   final Paint p = new Paint(3);
   final ArrayList<Double> values = new ArrayList<>();
   final ArrayList<Long> times = new ArrayList<>();
+  final ArrayList<Boolean> breaks = new ArrayList<>();
   final String title, unit;
   long maxGap = Long.MAX_VALUE;
+  long windowStart = -1, windowEnd = -1;
 
   Graph(Context c) {
     this(c, "Readings", "value");
@@ -39,6 +41,12 @@ final class Graph extends View {
     for (int i = 0; i < rows.length(); i++) {
       JSONObject r = rows.optJSONObject(i), d = Store.parse(r.optString("data"));
       times.add(r.optLong("ts"));
+      breaks.add(
+          i > 0
+              && Logic.gap(
+                  r.optLong("ts") - rows.optJSONObject(i - 1).optLong("ts"),
+                  r.optLong("elapsed") - rows.optJSONObject(i - 1).optLong("elapsed"),
+                  interval));
       values.add(Analysis.n(d, key));
     }
     describe();
@@ -78,6 +86,13 @@ final class Graph extends View {
       c.drawText("No measured readings", u(8), u(68), p);
       return;
     }
+    if (unit.equals("%")) {
+      min = 0.0;
+      max = 100.0;
+    } else if (max.equals(min)) {
+      min -= 1;
+      max += 1;
+    }
     double range = Math.max(1, max - min);
     float left = u(54), right = w - u(15), top = u(45), bottom = h - u(38);
     p.setTextSize(sp(11));
@@ -88,7 +103,11 @@ final class Graph extends View {
     c.drawLine(left, bottom, right, bottom, p);
     float px = 0, py = 0;
     boolean previous = false;
-    long begin = times.get(0), span = Math.max(1, times.get(times.size() - 1) - begin);
+    long begin =
+        windowStart >= 0 ? Math.min(windowStart, Collections.min(times)) : Collections.min(times);
+    long finish =
+        windowEnd >= 0 ? Math.max(windowEnd, Collections.max(times)) : Collections.max(times);
+    long span = Math.max(1, finish - begin);
     for (int i = 0; i < values.size(); i++) {
       Double v = values.get(i);
       if (v == null) {
@@ -97,9 +116,11 @@ final class Graph extends View {
       }
       float x = left + (right - left) * (times.get(i) - begin) / span,
           y = bottom - (float) ((v - min) / range) * (bottom - top);
-      p.setColor(0xff6ce4c2);
+      p.setColor(0xff42acff);
       p.setStrokeWidth(u(2));
-      if (previous && times.get(i) - times.get(i - 1) <= maxGap) c.drawLine(px, py, x, y, p);
+      if (previous
+          && (breaks.isEmpty() || !breaks.get(i))
+          && times.get(i) - times.get(i - 1) <= maxGap) c.drawLine(px, py, x, y, p);
       c.drawCircle(x, y, u(3), p);
       previous = true;
       px = x;
@@ -107,9 +128,16 @@ final class Graph extends View {
     }
     p.setColor(0xffb8c9dc);
     p.setTextSize(sp(10));
-    String start = times.size() > 0 && begin > 1000000 ? MainActivity.time(begin) : "Rank 1";
+    String start =
+        times.size() > 0 && begin > 1000000
+            ? new java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+                .format(new Date(begin))
+            : "Rank 1";
     String end =
-        begin > 1000000 ? MainActivity.time(times.get(times.size() - 1)) : "Rank " + times.size();
+        begin > 1000000
+            ? new java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+                .format(new Date(finish))
+            : "Rank " + times.size();
     c.drawText(start, left, h - u(10), p);
     c.drawText(end, Math.max(left, right - p.measureText(end)), h - u(10), p);
   }

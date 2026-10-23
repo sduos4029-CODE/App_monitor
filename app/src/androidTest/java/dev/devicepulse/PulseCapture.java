@@ -54,6 +54,28 @@ public class PulseCapture {
     image.recycle();
   }
 
+  void scrollToGraph() throws Exception {
+    long deadline = SystemClock.uptimeMillis() + 10000;
+    boolean[] ready = {false};
+    while (SystemClock.uptimeMillis() < deadline) {
+      owner.runOnMainSync(
+          () -> {
+            for (int i = 0; i < app.body.getChildCount(); i++) {
+              View v = app.body.getChildAt(i);
+              if (v instanceof Graph && v.getHeight() > 0 && v.getTop() > 0) {
+                ScrollView scroll = (ScrollView) app.body.getParent();
+                scroll.scrollTo(0, v.getTop());
+                ready[0] = scroll.getScrollY() > 0;
+                break;
+              }
+            }
+          });
+      if (ready[0]) return;
+      SystemClock.sleep(100);
+    }
+    throw new AssertionError("Native graph layout did not become scrollable");
+  }
+
   public void runCapture() {
     Bundle result = new Bundle();
     try {
@@ -64,6 +86,7 @@ public class PulseCapture {
                       .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
       ui(
           () -> {
+            app.h.removeCallbacks(app.refresh);
             app.db.erase();
             app.selected = app.db.start(6, 5);
             app.db.sample(app.selected, Probe.take(app));
@@ -75,20 +98,18 @@ public class PulseCapture {
             app.db.finish(app.selected, "stopped");
           });
       for (String page :
-          new String[] {"Dashboard", "Components", "History", "Activity", "Findings", "Settings"}) {
+          new String[] {
+            "Dashboard", "Overnight", "Components", "History", "Activity", "Findings", "Settings"
+          }) {
         ui(() -> app.navigate(page));
         shot(page.toLowerCase(java.util.Locale.ROOT));
       }
+      ui(() -> app.navigate("Overnight"));
+      scrollToGraph();
+      shot("overnight-chart");
       ui(() -> app.navigate("History"));
       shot("history-real-short-session");
-      ui(
-          () -> {
-            for (int i = 0; i < app.body.getChildCount(); i++)
-              if (app.body.getChildAt(i) instanceof Graph) {
-                ((ScrollView) app.body.getParent()).scrollTo(0, app.body.getChildAt(i).getTop());
-                break;
-              }
-          });
+      scrollToGraph();
       shot("graphs-real-short-session");
       ui(
           () -> {
@@ -98,7 +119,7 @@ public class PulseCapture {
           });
       result.putString(
           "stream",
-          "8 native app-window PixelCopy screenshots captured from real short-session API"
+          "10 native app-window PixelCopy screenshots captured from real short-session API"
               + " observations; capture history then deleted. No endurance claim.");
       owner.finish(Activity.RESULT_OK, result);
     } catch (Throwable t) {

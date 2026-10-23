@@ -1,0 +1,2 @@
+INSTRUMENTATION_RESULT: stream=PASS same-signature 1.0.0 → 1.1.0 update retained schema-1 history, API sample, reason and preferences. No uninstall performed.
+INSTRUMENTATION_CODE: -1

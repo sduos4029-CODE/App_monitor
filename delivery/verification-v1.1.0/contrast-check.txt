@@ -1,0 +1,1 @@
+Normal primary button: white text on #0875D1, computed sRGB contrast 4.69:1. This is a palette check, not a full accessibility audit.

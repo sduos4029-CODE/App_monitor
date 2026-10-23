@@ -10,61 +10,87 @@ final class Analysis {
 
   static JSONObject summary(Store db, long id) {
     JSONObject s = db.session(id), o = new JSONObject();
-    JSONArray samples = db.samples(id);
-    long covered = 0, off = 0, gaps = 0;
+    if (s == null) return o;
+    JSONArray rows = db.samples(id);
+    long start = s.optLong("start"),
+        end = s.isNull("end") ? System.currentTimeMillis() : s.optLong("end");
+    long window = Math.max(0, end - start), covered = 0, off = 0, gaps = 0;
     Double first = null, last = null, min = null, max = null;
+    long firstBatteryTs = 0, lastBatteryTs = 0;
+    int batteryCount = 0;
     double offDrain = 0;
-    JSONObject prev = null;
-    for (int i = 0; i < samples.length(); i++) {
-      JSONObject r = samples.optJSONObject(i), d = Store.parse(r.optString("data"));
-      Double b = n(d, "batteryPct"), t = n(d, "tempC");
-      if (b != null) {
-        if (first == null) first = b;
-        last = b;
+    boolean offBatteryKnown = false, clockUncertain = end < start;
+    JSONObject previous = null;
+    for (int i = 0; i < rows.length(); i++) {
+      JSONObject r = rows.optJSONObject(i), d = Store.parse(r.optString("data"));
+      Double battery = n(d, "batteryPct"), t = n(d, "tempC");
+      if (battery != null) {
+        if (first == null) {
+          first = battery;
+          firstBatteryTs = r.optLong("ts");
+        }
+        last = battery;
+        lastBatteryTs = r.optLong("ts");
+        batteryCount++;
       }
       if (t != null) {
         min = min == null ? t : Math.min(min, t);
         max = max == null ? t : Math.max(max, t);
       }
-      if (prev != null) {
-        long delta = r.optLong("ts") - prev.optLong("ts");
-        long mono = r.optLong("elapsed") - prev.optLong("elapsed");
-        JSONObject pd = Store.parse(prev.optString("data"));
-        if (delta >= 0 && !Logic.gap(delta, mono, s.optLong("interval"))) {
-          covered += delta;
-          if (pd.has("screenOn")
-              && !pd.optBoolean("screenOn")
-              && pd.has("plugged")
-              && !pd.optBoolean("plugged")
-              && d.has("screenOn")
-              && !d.optBoolean("screenOn")
-              && d.has("plugged")
-              && !d.optBoolean("plugged")) {
-            off += delta;
+      if (previous != null) {
+        long wall = r.optLong("ts") - previous.optLong("ts"),
+            elapsed = r.optLong("elapsed") - previous.optLong("elapsed");
+        clockUncertain |= wall < 0 || elapsed < 0 || Math.abs(wall - elapsed) > 60000;
+        long interval =
+            Math.max(0, Math.min(end, r.optLong("ts")) - Math.max(start, previous.optLong("ts")));
+        if (!Logic.gap(wall, elapsed, s.optLong("interval"))) {
+          covered += interval;
+          JSONObject pd = Store.parse(previous.optString("data"));
+          if (Boolean.FALSE.equals(pd.opt("screenOn"))
+              && Boolean.FALSE.equals(pd.opt("plugged"))
+              && Boolean.FALSE.equals(d.opt("screenOn"))
+              && Boolean.FALSE.equals(d.opt("plugged"))) {
+            off += interval;
             Double pb = n(pd, "batteryPct");
-            if (pb != null && b != null && pb >= b) offDrain += pb - b;
+            if (pb != null && battery != null && wall > 0) {
+              offBatteryKnown = true;
+              if (pb >= battery) offDrain += (pb - battery) * interval / wall;
+            }
           }
         } else gaps++;
       }
-      prev = r;
+      previous = r;
     }
-    Store.put(o, "sampleCount", samples.length());
+    covered = Math.min(window, covered);
+    off = Math.min(covered, off);
+    boolean batteryPair = batteryCount >= 2 && lastBatteryTs > firstBatteryTs;
+    Store.put(o, "sampleCount", rows.length());
+    Store.put(o, "batteryReadingCount", batteryCount);
+    Store.put(o, "firstBatteryTs", first == null ? null : firstBatteryTs);
+    Store.put(o, "lastBatteryTs", last == null ? null : lastBatteryTs);
+    Store.put(o, "batterySpanMs", batteryPair ? lastBatteryTs - firstBatteryTs : null);
+    Store.put(o, "windowMs", window);
     Store.put(o, "coveredMs", covered);
     Store.put(o, "screenOffUnpluggedMs", off);
+    Store.put(o, "otherObservedMs", covered - off);
+    Store.put(o, "unobservedMs", window - covered);
+    Store.put(o, "clockUncertain", clockUncertain);
     Store.put(o, "gapCount", gaps);
     Store.put(o, "minC", min);
     Store.put(o, "maxC", max);
     Store.put(o, "firstPct", first);
     Store.put(o, "lastPct", last);
-    Store.put(o, "netChangePctPoints", first == null || last == null ? null : last - first);
-    // Sample-to-sample rate is a derived estimate, not measured per-app energy.
-    long span =
-        samples.length() < 2
-            ? 0
-            : samples.optJSONObject(samples.length() - 1).optLong("ts")
-                - samples.optJSONObject(0).optLong("ts");
-    Store.put(o, "drainPctPerHour", Logic.drainRate(first, last, span));
-    Store.put(o, "screenOffDrainPctPerHourEstimated", off > 0 ? offDrain * 3600000 / off : null);
+    Store.put(o, "netChangePctPoints", batteryPair ? last - first : null);
+    Store.put(
+        o,
+        "drainPctPerHour",
+        batteryPair && !clockUncertain
+            ? Logic.drainRate(first, last, lastBatteryTs - firstBatteryTs)
+            : null);
+    Store.put(
+        o,
+        "screenOffDrainPctPerHourEstimated",
+        off > 0 && offBatteryKnown && !clockUncertain ? offDrain * 3600000 / off : null);
     return o;
   }
 
@@ -105,7 +131,7 @@ final class Analysis {
           .append(" completed session(s)\n\n");
     return result.length() == 0
         ? "No completed-session threshold violations found. Missing measurements cannot establish"
-              + " normal behavior."
+            + " normal behavior."
         : result
             + "Review only; these findings do not establish causation or malicious behavior."
             + " Current thresholds apply retrospectively. Interrupted/stopped sessions and imports"

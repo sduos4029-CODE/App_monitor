@@ -30,12 +30,13 @@ public class MainActivity extends Activity {
   SensorManager sensors;
   SensorEventListener sensorListener;
   Handler h = new Handler();
-  int pendingHours;
+  int pendingHours = 6;
   boolean busy;
   final Runnable refresh =
       new Runnable() {
         public void run() {
-          if (page.equals("Dashboard") || page.equals("Components")) render();
+          if (page.equals("Dashboard") || page.equals("Overnight") || page.equals("Components"))
+            render();
           h.postDelayed(this, 30000);
         }
       };
@@ -49,6 +50,7 @@ public class MainActivity extends Activity {
       page = b.getString("page", "Dashboard");
       selected = b.getLong("selected", -1);
       format = b.getString("format");
+      pendingHours = b.getInt("pendingHours", 6);
       String saved = b.getString("exportReport");
       if (saved != null) exportReport = Store.parse(saved);
     }
@@ -60,6 +62,7 @@ public class MainActivity extends Activity {
     b.putString("page", page);
     b.putLong("selected", selected);
     b.putString("format", format);
+    b.putInt("pendingHours", pendingHours);
     if (exportReport != null) b.putString("exportReport", exportReport.toString());
     super.onSaveInstanceState(b);
   }
@@ -67,7 +70,14 @@ public class MainActivity extends Activity {
   protected void onResume() {
     super.onResume();
     h.postDelayed(refresh, 30000);
-    if (db != null) render();
+    if (db != null) {
+      org.json.JSONObject active = db.active();
+      if (active != null
+          && MonitorService.running
+          && System.currentTimeMillis() >= active.optLong("planned"))
+        startService(new Intent(this, MonitorService.class).setAction("check"));
+      render();
+    }
   }
 
   protected void onPause() {
@@ -138,16 +148,24 @@ public class MainActivity extends Activity {
     Button b = new Button(this);
     b.setText(s);
     b.setTextSize(14);
-    b.setTextColor(dark ? 0xff101827 : Color.WHITE);
-    b.setBackgroundTintList(
-        android.content.res.ColorStateList.valueOf(dark ? 0xff6ce4c2 : 0xff226957));
+    b.setAllCaps(false);
+    b.setTextColor(Color.WHITE);
+    b.setBackground(
+        new android.graphics.drawable.RippleDrawable(
+            android.content.res.ColorStateList.valueOf(0x33ffffff),
+            shape(dark ? 0xff0875d1 : 0xff156bd0),
+            null));
+    b.setPadding(dp(12), dp(6), dp(12), dp(6));
+    LinearLayout.LayoutParams defaultButton = new LinearLayout.LayoutParams(-1, -2);
+    defaultButton.setMargins(0, dp(4), 0, dp(4));
+    b.setLayoutParams(defaultButton);
     b.setMinHeight(dp(48));
     b.setOnClickListener(v -> action.run());
     return b;
   }
 
   void action(String s, Runnable r) {
-    body.addView(button(s, r), new LinearLayout.LayoutParams(-1, -2));
+    body.addView(button(s, r));
   }
 
   void navigate(String p) {
@@ -157,12 +175,12 @@ public class MainActivity extends Activity {
   }
 
   void render() {
-    if (isFinishing()) return;
+    if (isFinishing() || isDestroyed()) return;
     dark = prefs.getBoolean("dark", true);
     ink = dark ? 0xfff0f5ff : 0xff152338;
     muted = dark ? 0xffb6c5d9 : 0xff42546c;
-    bg = dark ? 0xff101827 : 0xfff1f5f9;
-    card = dark ? 0xff1d2c41 : Color.WHITE;
+    bg = dark ? 0xff0b121c : 0xfff1f5f9;
+    card = dark ? 0xff172332 : Color.WHITE;
     root = new LinearLayout(this);
     root.setOrientation(LinearLayout.VERTICAL);
     root.setBackgroundColor(bg);
@@ -177,21 +195,23 @@ public class MainActivity extends Activity {
           }
           return insets;
         });
-    TextView brand = text("DevicePulse  /  " + page, 21, ink);
+    LinearLayout header = new LinearLayout(this);
+    header.setGravity(Gravity.CENTER_VERTICAL);
+    TextView brand = text("DevicePulse", 23, ink);
     brand.setTypeface(null, android.graphics.Typeface.BOLD);
-    root.addView(brand);
-    HorizontalScrollView hs = new HorizontalScrollView(this);
-    nav = new LinearLayout(this);
-    for (String p :
-        new String[] {
-          "Dashboard", "Activity", "Components", "History", "Findings", "Log", "Settings"
-        }) {
-      Button b = button(p, () -> navigate(p));
-      b.setContentDescription(p + (p.equals(page) ? ", selected" : ""));
-      nav.addView(b);
-    }
-    hs.addView(nav);
-    root.addView(hs);
+    header.addView(brand, new LinearLayout.LayoutParams(0, dp(58), 1));
+    FrameLayout settingsButton = new FrameLayout(this);
+    PulseIcon settingsIcon = new PulseIcon(this, "Settings", 0xff42acff);
+    FrameLayout.LayoutParams iconSize =
+        new FrameLayout.LayoutParams(dp(28), dp(28), Gravity.CENTER);
+    settingsButton.addView(settingsIcon, iconSize);
+    settingsButton.setBackground(shape(card));
+    settingsButton.setFocusable(true);
+    settingsButton.setClickable(true);
+    settingsButton.setContentDescription("Settings");
+    settingsButton.setOnClickListener(v -> navigate("Settings"));
+    header.addView(settingsButton, new LinearLayout.LayoutParams(dp(48), dp(48)));
+    root.addView(header);
     ScrollView scroll = new ScrollView(this);
     scroll.setFillViewport(true);
     root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
@@ -202,6 +222,9 @@ public class MainActivity extends Activity {
     switch (page) {
       case "Dashboard":
         dashboard();
+        break;
+      case "Overnight":
+        new OvernightScreen(this).report();
         break;
       case "Activity":
         activity();
@@ -221,6 +244,7 @@ public class MainActivity extends Activity {
       default:
         settings();
     }
+    new OvernightScreen(this).navigation();
   }
 
   JSONObject chosen() {
@@ -233,69 +257,7 @@ public class MainActivity extends Activity {
   }
 
   void dashboard() {
-    JSONObject live = Probe.take(this);
-    title("Your device, observed honestly");
-    note("Local only · no telemetry · passive measurements");
-    box(
-        "Battery · measured",
-        Logic.value(Analysis.n(live, "batteryPct"), "%")
-            + "  /  "
-            + Logic.value(Analysis.n(live, "tempC"), "°C")
-            + "\n"
-            + live.optString("chargingSource")
-            + " · "
-            + live.optString("chargingState")
-            + "\nScreen "
-            + (live.optBoolean("screenOn") ? "on" : "off")
-            + " · "
-            + time(System.currentTimeMillis()));
-    JSONObject s = db.active();
-    if (s == null) {
-      action("Start 6-hour session", () -> start(6));
-      action("Start 7-hour session", () -> start(7));
-    } else {
-      box(
-          "Session running",
-          time(s.optLong("start"))
-              + " → target "
-              + time(s.optLong("planned"))
-              + "\nSampling every "
-              + s.optLong("interval") / 60000
-              + " min; Android may delay or terminate collection.");
-      action(
-          "Stop session",
-          () ->
-              new AlertDialog.Builder(this)
-                  .setTitle("Stop monitoring?")
-                  .setMessage("Recorded samples remain in history.")
-                  .setPositiveButton(
-                      "Stop",
-                      (d, w) -> {
-                        startService(new Intent(this, MonitorService.class).setAction("stop"));
-                        h.postDelayed(() -> render(), 500);
-                      })
-                  .setNegativeButton("Keep monitoring", null)
-                  .show());
-    }
-    action(
-        "Monitoring limits & interruption behavior",
-        () ->
-            explain(
-                "Monitoring coverage",
-                "No wake lock or exact alarm. Doze and vendor restrictions can delay the Handler"
-                    + " sampler; 6/7 hours is a target window, not guaranteed continuous coverage"
-                    + " or an exact stop alarm. Screen and charging broadcasts add boundary samples"
-                    + " while the process runs. Late wake-up marks completion and records a gap."
-                    + " Force-stop/process death/reboot may stop collection. Reopening marks an"
-                    + " absent collector interrupted; exact cause/time may be unknown. Reboot"
-                    + " receiver never restarts monitoring. No sensor is continuously activated"
-                    + " overnight."));
-    JSONObject chosen = chosen();
-    if (chosen != null) {
-      summary(chosen);
-      action("View session history", () -> navigate("History"));
-    } else
-      note("No recorded sessions. No demonstration measurements are mixed into this dashboard.");
+    new OvernightScreen(this).home();
   }
 
   void start(int hours) {
@@ -304,7 +266,10 @@ public class MainActivity extends Activity {
     new AlertDialog.Builder(this)
         .setTitle(hours + "-hour monitoring session")
         .setMessage(
-            "Uses a foreground service and local storage. Default 5-minute passive sampling."
+            "Leave the phone unplugged with the screen off. Uses a foreground service and local"
+                + " storage. Samples every "
+                + prefs.getInt("interval", 5)
+                + " minutes."
                 + " Android may defer samples while asleep. Notification permission is optional; it"
                 + " does not grant usage access. No battery or account data leaves this device.")
         .setPositiveButton(
@@ -321,7 +286,8 @@ public class MainActivity extends Activity {
 
   void begin() {
     if (db.active() != null) return;
-    db.start(pendingHours == 7 ? 7 : 6, prefs.getInt("interval", 5));
+    selected = db.start(pendingHours == 7 ? 7 : 6, prefs.getInt("interval", 5));
+    page = "Overnight";
     try {
       startForegroundService(new Intent(this, MonitorService.class));
     } catch (RuntimeException e) {
@@ -414,97 +380,7 @@ public class MainActivity extends Activity {
   }
 
   void activity() {
-    title("Observed apps & system UIDs");
-    note(
-        "Session-wide activity, not a screen-off-only attribution. Select a session in History."
-            + " Usage access is optional. Android may aggregate shared UIDs or hide packages. No"
-            + " score here establishes battery use or malicious behavior.");
-    JSONObject s = chosen();
-    if (s == null) {
-      note("Record a session first.");
-      return;
-    }
-    note(
-        "Session #"
-            + s.optLong("id")
-            + " · "
-            + (AppActivity.allowed(this) ? "Usage access granted" : "Usage access not granted"));
-    action("Usage access settings", this::usageSettings);
-    action(
-        busy ? "Collecting…" : "Refresh permitted app activity",
-        () -> {
-          if (busy) return;
-          busy = true;
-          note("Querying Android's local usage/network buckets…");
-          long id = s.optLong("id"),
-              start = s.optLong("start"),
-              end = s.isNull("end") ? System.currentTimeMillis() : s.optLong("end");
-          new Thread(
-                  () -> {
-                    try (Store store = new Store(this)) {
-                      store.saveApps(id, AppActivity.collect(this, start, end, store, id));
-                    }
-                    runOnUiThread(
-                        () -> {
-                          busy = false;
-                          if (page.equals("Activity")) render();
-                        });
-                  })
-              .start();
-        });
-    boolean byTime = prefs.getBoolean("sortTime", false);
-    action(
-        byTime
-            ? "Sort: foreground time (tap for bytes)"
-            : "Sort: received + sent bytes (tap for time)",
-        () -> {
-          prefs.edit().putBoolean("sortTime", !byTime).apply();
-          render();
-        });
-    JSONArray records = db.apps(s.optLong("id"));
-    ArrayList<JSONObject> sorted = new ArrayList<>();
-    for (int i = 0; i < records.length(); i++) sorted.add(records.optJSONObject(i));
-    sorted.sort((a, b) -> Double.compare(order(b, byTime), order(a, byTime)));
-    if (sorted.isEmpty())
-      note(
-          "No permitted UID observations yet. Grant usage access if desired, then refresh. Missing"
-              + " entries are not zero usage.");
-    List<Double> top = new ArrayList<>();
-    for (int i = 0; i < Math.min(8, sorted.size()); i++) {
-      double v = order(sorted.get(i), byTime);
-      top.add(v < 0 ? null : v / (byTime ? 60000 : 1000000));
-    }
-    Graph graph = new Graph(this, "Top UIDs by rank", byTime ? "foreground min" : "MB (decimal)");
-    graph.bars(top);
-    body.addView(graph, new LinearLayout.LayoutParams(-1, dp(210)));
-    int rank = 0;
-    for (JSONObject r : sorted) {
-      JSONObject data = Store.parse(r.optString("data"));
-      String rx = data.isNull("rxBytes") ? "Unavailable" : data.optLong("rxBytes") + " B",
-          tx = data.isNull("txBytes") ? "Unavailable" : data.optLong("txBytes") + " B";
-      LinearLayout c =
-          box(
-              (++rank) + ". UID " + r.optInt("uid"),
-              r.optString("pkg")
-                  + "\nReceived "
-                  + rx
-                  + " · Sent "
-                  + tx
-                  + "\nForeground "
-                  + (data.isNull("foregroundMs")
-                      ? "Unavailable"
-                      : duration(data.optLong("foregroundMs")))
-                  + "\nBattery / CPU / wake lock: unavailable locally\n"
-                  + data.optString("networkSource", "Network source: unavailable")
-                  + "\n"
-                  + data.optString("usageSource", "Foreground source: unavailable")
-                  + "\nUser-confirmed reason: "
-                  + (r.isNull("reason") ? "None" : r.optString("reason")));
-      c.addView(button("Confirm a reason", () -> reason(r)));
-    }
-    note(
-        "Imported battery/CPU/wake-lock rows appear separately in History and exports. They never"
-            + " replace measured data, enter rankings or trigger real alerts.");
+    new OvernightScreen(this).apps();
   }
 
   double order(JSONObject r, boolean byTime) {
@@ -516,13 +392,13 @@ public class MainActivity extends Activity {
   }
 
   void reason(JSONObject r) {
-    String[] choices = {"Sync", "Backup", "Update", "Alarm", "User activity", "Unknown / clear"};
+    String[] choices = {"Sync", "Backup", "Update", "Alarm", "User activity", "Clear confirmation"};
     new AlertDialog.Builder(this)
         .setTitle("Your confirmed context — not a diagnosis")
         .setItems(
             choices,
             (d, w) -> {
-              db.reason(r.optLong("id"), choices[w]);
+              db.reason(r.optLong("id"), w == choices.length - 1 ? null : choices[w]);
               render();
             })
         .show();
@@ -811,7 +687,11 @@ public class MainActivity extends Activity {
   }
 
   void settings() {
-    title("Local controls");
+    title("Settings & device tools");
+    action("Device components", () -> navigate("Components"));
+    action("Review findings", () -> navigate("Findings"));
+    action("Searchable activity log", () -> navigate("Log"));
+    action("Android battery usage", () -> new OvernightScreen(this).batterySettings());
     action(
         dark ? "Use light mode" : "Use dark mode",
         () -> {
